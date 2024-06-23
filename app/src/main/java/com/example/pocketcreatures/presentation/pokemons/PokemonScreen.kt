@@ -5,6 +5,7 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -22,6 +23,9 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -30,6 +34,7 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import coil.compose.AsyncImage
 import com.example.pocketcreatures.data.remote.model.PokemonResultDTO
+import com.example.pocketcreatures.presentation.views.FullScreenImage
 import com.example.pocketcreatures.utils.extractId
 import com.example.pocketcreatures.utils.getPicUrl
 import kotlinx.coroutines.flow.map
@@ -41,7 +46,11 @@ fun PokemonScreenWithViewModel(
     onShowDetails: (id: Int) -> Unit
 ) {
     val uiState by viewModel.uiState.collectAsState()
-    PokemonScreen(state = uiState, onShowDetails = onShowDetails, onLoadMore = viewModel::onLoadMore)
+    PokemonScreen(
+        state = uiState,
+        onShowDetails = onShowDetails,
+        onLoadMore = viewModel::onLoadMore
+    )
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -51,6 +60,9 @@ fun PokemonScreen(
     onShowDetails: (id: Int) -> Unit,
     onLoadMore: () -> Unit
 ) {
+    var showFullScreenImage by remember { mutableStateOf(false) }
+    var fullScreenImageUrl by remember { mutableStateOf("") }
+
     Scaffold(
         topBar = {
             TopAppBar(
@@ -78,34 +90,65 @@ fun PokemonScreen(
                                 pokemonList = state.pokemonList,
                                 onShowDetails = onShowDetails,
                                 onLoadMore = onLoadMore,
-                                isLoadingMore = state.isLoadingMore
+                                isLoadingMore = state.isLoadingMore,
+                                onImageClick = {
+                                    fullScreenImageUrl = it
+                                    showFullScreenImage = true
+                                }
                             )
                         }
                     }
                 }
                 ErrorMessages(errorMessages = state.errorMessages)
+                if (showFullScreenImage) {
+                    FullScreenImage(
+                        imageUrl = fullScreenImageUrl,
+                        onDismiss = { showFullScreenImage = false }
+                    )
+                }
             }
         }
     )
 }
+
 
 @Composable
 fun PokemonList(
     pokemonList: List<PokemonResultDTO?>,
     onShowDetails: (id: Int) -> Unit,
     onLoadMore: () -> Unit,
-    isLoadingMore: Boolean
+    isLoadingMore: Boolean,
+    onImageClick: (url: String) -> Unit
 ) {
     val listState = rememberLazyListState()
     Log.wtf("isLoadingMore", isLoadingMore.toString())
     LazyColumn(state = listState) {
         items(
-            count = pokemonList.size,
-            key = { pokemonList[it]?.name.toString() },
+            count = (pokemonList.size + 1) / 2,
+            key = { pokemonList[it * 2]?.name.toString() },
             itemContent = { index ->
-                val pokemonData = pokemonList[index]
-                if (pokemonData != null) {
-                    PokemonItem(pokemon = pokemonData, onShowDetails = onShowDetails)
+                val firstPokemon = pokemonList[index * 2]
+                val secondPokemon = pokemonList.getOrNull(index * 2 + 1)
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceEvenly
+                ) {
+                    if (firstPokemon != null) {
+                        PokemonItem(
+                            pokemon = firstPokemon,
+                            onShowDetails = onShowDetails,
+                            modifier = Modifier.weight(1f),
+                            onImageClick = onImageClick
+                        )
+                    }
+                    if (secondPokemon != null) {
+                        PokemonItem(
+                            pokemon = secondPokemon,
+                            onShowDetails = onShowDetails,
+                            modifier = Modifier.weight(1f),
+                            onImageClick = onImageClick
+                        )
+                    }
                 }
             },
         )
@@ -144,13 +187,18 @@ fun PokemonList(
     }
 }
 
+
 @Composable
-fun PokemonItem(pokemon: PokemonResultDTO, onShowDetails: (id: Int) -> Unit) {
+fun PokemonItem(
+    pokemon: PokemonResultDTO,
+    onShowDetails: (id: Int) -> Unit,
+    modifier: Modifier = Modifier,
+    onImageClick: (url: String) -> Unit
+) {
     val id = pokemon.url?.extractId() ?: 0
     val picUrl = pokemon.url?.getPicUrl() ?: ""
     Column(
         modifier = Modifier
-            .fillMaxWidth()
             .padding(8.dp)
     ) {
         Text(text = pokemon.name ?: "", modifier = Modifier.padding(8.dp))
@@ -159,7 +207,7 @@ fun PokemonItem(pokemon: PokemonResultDTO, onShowDetails: (id: Int) -> Unit) {
             contentDescription = null,
             modifier = Modifier
                 .size(100.dp)
-                .clickable { onShowDetails(id) }
+                .clickable { onImageClick(picUrl) }
         )
 
         Button(onClick = { onShowDetails(id) }, modifier = Modifier.padding(8.dp)) {
