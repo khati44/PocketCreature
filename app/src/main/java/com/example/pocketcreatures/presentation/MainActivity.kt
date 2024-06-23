@@ -7,18 +7,15 @@ import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.compose.animation.EnterTransition
 import androidx.compose.animation.ExitTransition
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.toRoute
+import com.example.pocketcreatures.presentation.detail.PokemonDetailScreenWithViewModel
 import com.example.pocketcreatures.presentation.pokemons.PokemonScreenWithViewModel
 import com.example.pocketcreatures.presentation.theme.PocketCreaturesTheme
 import dagger.hilt.android.AndroidEntryPoint
@@ -38,43 +35,36 @@ class MainActivity : ComponentActivity() {
                     enterTransition = { EnterTransition.None },
                     exitTransition = { ExitTransition.None },
                     popEnterTransition = { EnterTransition.None },
-                    popExitTransition = { ExitTransition.None }){
+                    popExitTransition = { ExitTransition.None }) {
                     composable<PokemonScreen> {
-                        PokemonScreenWithViewModel(onShowDetails = {
-                            navController.navigate(PokemonDetailScreen(id = it.toString()))
+                        PokemonScreenWithViewModel(onShowDetails = { id, picUrl, name ->
+                            navController.navigate(PokemonDetailScreen(id = id, picUrl = picUrl,name = name))
                         })
                     }
                     composable<PokemonDetailScreen> {
-                        val detailScreen:PokemonDetailScreen = it.toRoute()
-                        Column(
-                            modifier = Modifier.fillMaxSize(),
-                            verticalArrangement = Arrangement.Center,
-                            horizontalAlignment = Alignment.CenterHorizontally
-                        ) {
-                            Text(text = "${detailScreen.id}, years old")
-                        }
-                        BackHandler {
+                        val detailScreen: PokemonDetailScreen = it.toRoute()
+                        PokemonDetailScreenWithViewModel(
+                            id = detailScreen.id,
+                            picUrl = detailScreen.picUrl.toString(),
+                            name = detailScreen.name ?: "Pokemon",
+                            onGoBack = {
+                                navController.popBackStack(
+                                    navController.graph.startDestinationId,
+                                    false
+                                )
+                            })
 
-                            navController.popBackStack(navController.graph.startDestinationId, false)
+                        BackHandler {
+                            navController.popBackStack(
+                                navController.graph.startDestinationId,
+                                false
+                            )
                         }
                     }
                 }
             }
         }
     }
-}
-
-
-
-@Serializable
-sealed class Routes {
-
-    @Serializable
-    data object FirstScreen : Routes()
-
-    @Serializable
-    data class SecondScreen(val id:String) : Routes()
-
 }
 
 
@@ -99,5 +89,7 @@ object PokemonScreen
 
 @Serializable
 data class PokemonDetailScreen(
-    val id:String
+    val id: Int,
+    val picUrl:String?,
+    val name:String?
 )

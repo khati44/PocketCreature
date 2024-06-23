@@ -3,8 +3,8 @@ package com.example.pocketcreatures.presentation.pokemons
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.pocketcreatures.common.Dispatchers
-import com.example.pocketcreatures.data.remote.model.PokemonResultDTO
 import com.example.pocketcreatures.domain.interactor.GetPokemonUseCase
+import com.example.pocketcreatures.domain.model.NameAndUrl
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
@@ -84,7 +84,7 @@ sealed interface PokemonUiState {
     ) : PokemonUiState
 
     data class HasData(
-        val pokemonList: List<PokemonResultDTO?>,
+        val pokemonList: List<NameAndUrl?>,
         override val isLoading: Boolean,
         override val isLoadingMore: Boolean,
         override val errorMessages: String
@@ -92,7 +92,7 @@ sealed interface PokemonUiState {
 }
 
 private data class PokemonViewModelState(
-    val pokemonList: List<PokemonResultDTO?> = emptyList(),
+    val pokemonList: List<NameAndUrl?> = emptyList(),
     val errorMessages: String = "",
     val isLoadingMore: Boolean = false
 ) {
