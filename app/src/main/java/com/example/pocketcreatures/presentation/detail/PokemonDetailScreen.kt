@@ -10,6 +10,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.rememberScrollState
@@ -34,10 +35,12 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import coil.compose.AsyncImage
+import com.example.pocketcreatures.R
 import com.example.pocketcreatures.domain.model.PokemonDetailResponse
 import com.example.pocketcreatures.presentation.views.FullScreenImage
 
@@ -73,7 +76,9 @@ fun SinglePokemonDetailScreen(
                 title = { Text(name) },
                 navigationIcon = {
                     IconButton(onClick = onGoBack) {
-                        Icon(imageVector = Icons.Default.ArrowBack, contentDescription = "Go Back")
+                        Icon(imageVector = Icons.Default.ArrowBack, contentDescription = stringResource(
+                            id = R.string.go_back
+                        ))
                     }
                 }
             )
@@ -113,13 +118,15 @@ fun SinglePokemonDetailScreen(
                     PokemonInfoScreen(uiState.data)
                 }
                 is PokemonDetailUiState.Error -> {
-                    Text(text = "something went wrong")
+                    Text(text = stringResource(R.string.something_went_wrong))
                 }
+                else -> {}
             }
             if (showFullScreenImage) {
                 FullScreenImage(
                     imageUrl = fullScreenImageUrl,
-                    onDismiss = { showFullScreenImage = false }
+                    onDismiss = { showFullScreenImage = false },
+                    imageModifier = Modifier.size(400.dp)
                 )
             }
         }
@@ -130,13 +137,13 @@ fun SinglePokemonDetailScreen(
 fun PokemonInfoScreen(data: PokemonDetailResponse) {
 
     Text(
-        text = "type: " + data.types.firstOrNull()?.type?.name.orEmpty(),
+        text = stringResource(id = R.string.type, data.types.firstOrNull()?.type?.name.orEmpty()),
         modifier = Modifier.padding(start = 16.dp, top = 24.dp),
         fontSize = 20.sp
     )
     if (data.abilities.isNotEmpty()){
         Text(
-            text = "abilities",
+            text = stringResource(R.string.abilities),
             modifier = Modifier.padding(start = 16.dp, top = 24.dp),
             fontSize = 20.sp
         )
@@ -177,8 +184,15 @@ fun PokemonInfoScreen(data: PokemonDetailResponse) {
                         .padding(vertical = 8.dp)
                 ) {
                     val stat = stats[index]
-                    Text(text = stat.stat.name.orEmpty().plus(" ").plus(stat.baseStat))
-                    stat.baseStat.let { ProgressLine(it) }
+                    Text(
+                        text = stringResource(
+                            id = R.string.stat_text,
+                            stat.stat.name.orEmpty(),
+                            stat.baseStat
+                        )
+                    )
+
+                    ProgressLine(stat.baseStat)
                 }
             }
         )
@@ -194,18 +208,21 @@ fun ProgressLine(progress: Int) {
             .height(5.dp)
     ) {
         Row(modifier = Modifier.fillMaxSize()) {
-            Box(
-                modifier = Modifier
-                    .weight(progress.toFloat() / 100)
-                    .fillMaxHeight()
-                    .background(Color.White)
-            )
-            Box(
-                modifier = Modifier
-                    .weight((100 - progress).toFloat() / 100)
-                    .fillMaxHeight()
-                    .background(Color.Gray)
-            )
+            if (progress > 0){
+                Box(
+                    modifier = Modifier
+                        .weight(progress.toFloat() / 100)
+                        .fillMaxHeight()
+                        .background(Color.White))
+            }
+            if (progress < 100) {
+                Box(
+                    modifier = Modifier
+                        .weight((100 - progress).toFloat() / 100)
+                        .fillMaxHeight()
+                        .background(Color.Gray)
+                )
+            }
         }
     }
 }

@@ -20,6 +20,7 @@ import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.layout.positionInRoot
+import androidx.compose.ui.node.ModifierNodeElement
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.toSize
 import androidx.compose.ui.window.Dialog
@@ -28,7 +29,8 @@ import coil.compose.AsyncImage
 @Composable
 fun FullScreenImage(
     imageUrl: String,
-    onDismiss: () -> Unit
+    onDismiss: () -> Unit,
+    imageModifier:Modifier = Modifier
 ) {
     var offsetY by remember { mutableStateOf(0f) }
     val animatedOffsetY by animateFloatAsState(targetValue = offsetY)
@@ -90,7 +92,7 @@ fun FullScreenImage(
                     model = imageUrl,
                     contentScale = ContentScale.Fit,
                     contentDescription = null,
-                    modifier = Modifier.size(200.dp)
+                    modifier = imageModifier
                 )
             }
         }

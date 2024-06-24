@@ -25,7 +25,7 @@ class PokemonViewModel @Inject constructor(
         .map { it.toUiState() }
         .stateIn(
             viewModelScope,
-            SharingStarted.Eagerly,
+            SharingStarted.WhileSubscribed(5000),
             _viewModelState.value.toUiState()
         )
 
@@ -37,9 +37,9 @@ class PokemonViewModel @Inject constructor(
     }
 
     private fun loadMorePokemon() {
-        if (_viewModelState.value.isLoadingMore) return
+        if (_viewModelState.value.isLoading) return
 
-        _viewModelState.update { it.copy(isLoadingMore = true) }
+        _viewModelState.update { it.copy(isLoading = true) }
         dispatchers.launchBackground(viewModelScope) {
             getPokemonUseCase.invoke(currentOffset.value, limit).collect { result ->
                 result.fold(
@@ -48,16 +48,14 @@ class PokemonViewModel @Inject constructor(
                         _viewModelState.update { currentState ->
                             currentState.copy(
                                 pokemonList = currentState.pokemonList.plus(pokemonResponse.results),
-                                errorMessages = "",
-                                isLoadingMore = false
+                                isError = false,
+                                isLoading = false
                             )
                         }
                     },
-                    onFailure = { throwable ->
+                    onFailure = {
                         _viewModelState.update { currentState ->
-                            val errorMessages =
-                                throwable.message + (throwable.cause?.message ?: "Unknown error")
-                            currentState.copy(errorMessages = errorMessages, isLoadingMore = false)
+                            currentState.copy(isError = true, isLoading = false)
                         }
                     }
                 )
@@ -66,7 +64,7 @@ class PokemonViewModel @Inject constructor(
     }
 
     fun onLoadMore() {
-        if (!_viewModelState.value.isLoadingMore) {
+        if (!_viewModelState.value.isLoading) {
             loadMorePokemon()
         }
     }
@@ -75,39 +73,39 @@ class PokemonViewModel @Inject constructor(
 sealed interface PokemonUiState {
     val isLoading: Boolean
     val isLoadingMore: Boolean
-    val errorMessages: String
+    val isError: Boolean
 
     data class NoData(
         override val isLoading: Boolean,
         override val isLoadingMore: Boolean,
-        override val errorMessages: String
+        override val isError: Boolean
     ) : PokemonUiState
 
     data class HasData(
         val pokemonList: List<NameAndUrl?>,
         override val isLoading: Boolean,
         override val isLoadingMore: Boolean,
-        override val errorMessages: String
+        override val isError: Boolean
     ) : PokemonUiState
 }
 
 private data class PokemonViewModelState(
     val pokemonList: List<NameAndUrl?> = emptyList(),
-    val errorMessages: String = "",
-    val isLoadingMore: Boolean = false
+    val isError: Boolean = false,
+    val isLoading: Boolean = false
 ) {
     fun toUiState(): PokemonUiState = if (pokemonList.isEmpty()) {
         PokemonUiState.NoData(
-            isLoading = pokemonList.isEmpty() && !isLoadingMore,
-            isLoadingMore = isLoadingMore,
-            errorMessages = errorMessages
+            isLoading = pokemonList.isEmpty() && isLoading,
+            isLoadingMore = isLoading ,
+            isError = isError
         )
     } else {
         PokemonUiState.HasData(
             pokemonList = pokemonList,
-            isLoading = pokemonList.isEmpty() && !isLoadingMore,
-            isLoadingMore = isLoadingMore,
-            errorMessages = errorMessages
+            isLoading = false,
+            isLoadingMore = isLoading && pokemonList.isNotEmpty(),
+            isError = isError
         )
     }
 }

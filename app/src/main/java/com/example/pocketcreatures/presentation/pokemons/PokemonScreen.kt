@@ -15,6 +15,7 @@ import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material3.Button
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.Icon
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
@@ -29,9 +30,13 @@ import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import coil.compose.AsyncImage
+import com.example.pocketcreatures.R
 import com.example.pocketcreatures.domain.model.NameAndUrl
 import com.example.pocketcreatures.presentation.views.FullScreenImage
 import com.example.pocketcreatures.utils.extractId
@@ -44,11 +49,12 @@ fun PokemonScreenWithViewModel(
     viewModel: PokemonViewModel = hiltViewModel(),
     onShowDetails: (id: Int,picUrl:String,name:String?) -> Unit,
 ) {
-    val uiState by viewModel.uiState.collectAsState()
+    val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     PokemonScreen(
         state = uiState,
         onShowDetails = onShowDetails,
-        onLoadMore = viewModel::onLoadMore
+        onLoadMore = viewModel::onLoadMore,
+        onRefresh = viewModel::onLoadMore
     )
 }
 
@@ -57,7 +63,8 @@ fun PokemonScreenWithViewModel(
 fun PokemonScreen(
     state: PokemonUiState,
     onShowDetails: (id: Int,picUrl:String,name:String?) -> Unit,
-    onLoadMore: () -> Unit
+    onLoadMore: () -> Unit,
+    onRefresh:() -> Unit
 ) {
     var showFullScreenImage by remember { mutableStateOf(false) }
     var fullScreenImageUrl by remember { mutableStateOf("") }
@@ -65,7 +72,7 @@ fun PokemonScreen(
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("Pokemon List") }
+                title = { Text(stringResource(id = R.string.app_name)) }
             )
         },
         content = { paddingValues ->
@@ -81,7 +88,7 @@ fun PokemonScreen(
                 } else {
                     when (state) {
                         is PokemonUiState.NoData -> {
-                            Text(text = "No pokemons to show :(")
+                            Text(text = stringResource(id = R.string.no_pokemons_to_show))
                         }
 
                         is PokemonUiState.HasData -> {
@@ -98,11 +105,20 @@ fun PokemonScreen(
                         }
                     }
                 }
-                ErrorMessages(errorMessages = state.errorMessages)
+                if (state.isError){
+//                    ErrorMessages()
+                    Button(
+                        onClick = onRefresh,
+                        modifier = Modifier.padding(16.dp)
+                    ) {
+                        Text(text = stringResource(id = R.string.refresh), modifier = Modifier.padding(start = 8.dp))
+                    }
+                }
                 if (showFullScreenImage) {
                     FullScreenImage(
                         imageUrl = fullScreenImageUrl,
-                        onDismiss = { showFullScreenImage = false }
+                        onDismiss = { showFullScreenImage = false },
+                        imageModifier = Modifier.size(200.dp)
                     )
                 }
             }
@@ -207,7 +223,7 @@ fun PokemonItem(
         )
 
         Button(onClick = { onShowDetails(id,picUrl,pokemon.name) }, modifier = Modifier.padding(8.dp)) {
-            Text("Show Details")
+            Text(text = stringResource(id = R.string.show_details))
         }
     }
 }
