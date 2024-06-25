@@ -97,7 +97,7 @@ private data class PokemonViewModelState(
     fun toUiState(): PokemonUiState = if (pokemonList.isEmpty()) {
         PokemonUiState.NoData(
             isLoading = pokemonList.isEmpty() && isLoading,
-            isLoadingMore = isLoading ,
+            isLoadingMore = isLoading,
             isError = isError
         )
     } else {

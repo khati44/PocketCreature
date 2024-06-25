@@ -8,6 +8,7 @@
     <string name="pokemon_name">%1$s</string>
     <string name="no_pokemons_to_show">No pokemons to show :(</string>
     <string name="refresh">Refresh</string>
+    <string name="pokemon">Pokemon</string>
     <string name="pocket_creatures">Pocket Creatures</string>
     <string name="show_details">Show Details</string>
 </resources>

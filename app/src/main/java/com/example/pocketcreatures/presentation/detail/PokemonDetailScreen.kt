@@ -21,6 +21,7 @@ import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
@@ -33,7 +34,6 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
@@ -47,16 +47,16 @@ import com.example.pocketcreatures.presentation.views.FullScreenImage
 @Composable
 fun PokemonDetailScreenWithViewModel(
     viewModel: PokemonDetailViewModel = hiltViewModel(),
-    id:Int,
+    id: Int,
     onGoBack: () -> Unit,
-    picUrl:String,
-    name:String
+    picUrl: String,
+    name: String
 ) {
     val uiState by viewModel.uiState.collectAsState()
     LaunchedEffect(id) {
         viewModel.getDetailedPokemon(id)
     }
-    SinglePokemonDetailScreen(uiState,onGoBack,picUrl,name)
+    SinglePokemonDetailScreen(uiState, onGoBack, picUrl, name)
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -76,9 +76,12 @@ fun SinglePokemonDetailScreen(
                 title = { Text(name) },
                 navigationIcon = {
                     IconButton(onClick = onGoBack) {
-                        Icon(imageVector = Icons.Default.ArrowBack, contentDescription = stringResource(
-                            id = R.string.go_back
-                        ))
+                        Icon(
+                            imageVector = Icons.Default.ArrowBack,
+                            contentDescription = stringResource(
+                                id = R.string.go_back
+                            )
+                        )
                     }
                 }
             )
@@ -109,24 +112,32 @@ fun SinglePokemonDetailScreen(
                     contentScale = ContentScale.FillWidth
                 )
             }
+
             when (uiState) {
                 is PokemonDetailUiState.Loading -> {
-                    CircularProgressIndicator()
+                    Box(
+                        modifier = Modifier
+                            .fillMaxWidth(),
+                        contentAlignment = Alignment.Center,
+                    ) {
+                        CircularProgressIndicator()
+
+                    }
                 }
-                
+
                 is PokemonDetailUiState.Success -> {
                     PokemonInfoScreen(uiState.data)
                 }
+
                 is PokemonDetailUiState.Error -> {
                     Text(text = stringResource(R.string.something_went_wrong))
                 }
-                else -> {}
             }
             if (showFullScreenImage) {
                 FullScreenImage(
                     imageUrl = fullScreenImageUrl,
                     onDismiss = { showFullScreenImage = false },
-                    imageModifier = Modifier.size(400.dp)
+                    modifier = Modifier.size(400.dp)
                 )
             }
         }
@@ -141,7 +152,7 @@ fun PokemonInfoScreen(data: PokemonDetailResponse) {
         modifier = Modifier.padding(start = 16.dp, top = 24.dp),
         fontSize = 20.sp
     )
-    if (data.abilities.isNotEmpty()){
+    if (data.abilities.isNotEmpty()) {
         Text(
             text = stringResource(R.string.abilities),
             modifier = Modifier.padding(start = 16.dp, top = 24.dp),
@@ -151,15 +162,17 @@ fun PokemonInfoScreen(data: PokemonDetailResponse) {
 
     val abilities = data.abilities
     val stats = data.stats
-    LazyColumn(modifier = Modifier
-        .padding(16.dp)
-        .height(100.dp)) {
+    LazyColumn(
+        modifier = Modifier
+            .padding(16.dp)
+            .height(100.dp)
+    ) {
         items(
             count = abilities.size,
             key = {
                 abilities[it].ability.name.toString()
             },
-            itemContent =  { index ->
+            itemContent = { index ->
                 val ability = abilities[index]
                 Text(text = ability.ability.name.orEmpty())
             }
@@ -176,7 +189,7 @@ fun PokemonInfoScreen(data: PokemonDetailResponse) {
             key = {
                 stats[it].stat.name.toString()
             },
-            itemContent =  { index ->
+            itemContent = { index ->
 
                 Column(
                     modifier = Modifier
@@ -208,19 +221,20 @@ fun ProgressLine(progress: Int) {
             .height(5.dp)
     ) {
         Row(modifier = Modifier.fillMaxSize()) {
-            if (progress > 0){
+            if (progress > 0) {
                 Box(
                     modifier = Modifier
                         .weight(progress.toFloat() / 100)
                         .fillMaxHeight()
-                        .background(Color.White))
+                        .background(MaterialTheme.colorScheme.primary)
+                )
             }
             if (progress < 100) {
                 Box(
                     modifier = Modifier
                         .weight((100 - progress).toFloat() / 100)
                         .fillMaxHeight()
-                        .background(Color.Gray)
+                        .background(MaterialTheme.colorScheme.tertiary)
                 )
             }
         }

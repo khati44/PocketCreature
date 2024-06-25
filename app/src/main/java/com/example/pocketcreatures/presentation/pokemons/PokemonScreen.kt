@@ -15,13 +15,11 @@ import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material3.Button
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.Icon
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -29,8 +27,6 @@ import androidx.compose.runtime.setValue
 import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
@@ -47,7 +43,7 @@ import kotlinx.coroutines.flow.map
 @Composable
 fun PokemonScreenWithViewModel(
     viewModel: PokemonViewModel = hiltViewModel(),
-    onShowDetails: (id: Int,picUrl:String,name:String?) -> Unit,
+    onShowDetails: (id: Int, picUrl: String, name: String?) -> Unit,
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     PokemonScreen(
@@ -62,9 +58,9 @@ fun PokemonScreenWithViewModel(
 @Composable
 fun PokemonScreen(
     state: PokemonUiState,
-    onShowDetails: (id: Int,picUrl:String,name:String?) -> Unit,
+    onShowDetails: (id: Int, picUrl: String, name: String?) -> Unit,
     onLoadMore: () -> Unit,
-    onRefresh:() -> Unit
+    onRefresh: () -> Unit
 ) {
     var showFullScreenImage by remember { mutableStateOf(false) }
     var fullScreenImageUrl by remember { mutableStateOf("") }
@@ -105,20 +101,22 @@ fun PokemonScreen(
                         }
                     }
                 }
-                if (state.isError){
-//                    ErrorMessages()
+                if (state.isError) {
                     Button(
                         onClick = onRefresh,
                         modifier = Modifier.padding(16.dp)
                     ) {
-                        Text(text = stringResource(id = R.string.refresh), modifier = Modifier.padding(start = 8.dp))
+                        Text(
+                            text = stringResource(id = R.string.refresh),
+                            modifier = Modifier.padding(start = 8.dp)
+                        )
                     }
                 }
                 if (showFullScreenImage) {
                     FullScreenImage(
                         imageUrl = fullScreenImageUrl,
                         onDismiss = { showFullScreenImage = false },
-                        imageModifier = Modifier.size(200.dp)
+                        modifier = Modifier.size(200.dp)
                     )
                 }
             }
@@ -130,7 +128,7 @@ fun PokemonScreen(
 @Composable
 fun PokemonList(
     pokemonList: List<NameAndUrl?>,
-    onShowDetails: (id: Int,picUrl:String,name:String?) -> Unit,
+    onShowDetails: (id: Int, picUrl: String, name: String?) -> Unit,
     onLoadMore: () -> Unit,
     isLoadingMore: Boolean,
     onImageClick: (url: String) -> Unit
@@ -203,7 +201,7 @@ fun PokemonList(
 @Composable
 fun PokemonItem(
     pokemon: NameAndUrl,
-    onShowDetails: (id: Int,picUrl:String,name:String?) -> Unit,
+    onShowDetails: (id: Int, picUrl: String, name: String?) -> Unit,
     onImageClick: (url: String) -> Unit
 ) {
     val id = pokemon.url?.extractId() ?: 0
@@ -213,7 +211,7 @@ fun PokemonItem(
             .padding(8.dp),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        Text(text = pokemon.name ?: "", modifier = Modifier.padding(8.dp))
+        Text(text = pokemon.name.orEmpty(), modifier = Modifier.padding(8.dp))
         AsyncImage(
             model = picUrl,
             contentDescription = null,
@@ -222,15 +220,11 @@ fun PokemonItem(
                 .clickable { onImageClick(picUrl) }
         )
 
-        Button(onClick = { onShowDetails(id,picUrl,pokemon.name) }, modifier = Modifier.padding(8.dp)) {
+        Button(
+            onClick = { onShowDetails(id, picUrl, pokemon.name) },
+            modifier = Modifier.padding(8.dp)
+        ) {
             Text(text = stringResource(id = R.string.show_details))
         }
-    }
-}
-
-@Composable
-fun ErrorMessages(errorMessages: String) {
-    if (errorMessages.isNotEmpty()) {
-        Text(text = errorMessages, color = Color.Red)
     }
 }

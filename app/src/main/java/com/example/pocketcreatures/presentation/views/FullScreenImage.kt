@@ -6,7 +6,6 @@ import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.offset
-import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.layout.wrapContentWidth
 import androidx.compose.runtime.Composable
@@ -20,7 +19,6 @@ import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.layout.positionInRoot
-import androidx.compose.ui.node.ModifierNodeElement
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.toSize
 import androidx.compose.ui.window.Dialog
@@ -30,7 +28,7 @@ import coil.compose.AsyncImage
 fun FullScreenImage(
     imageUrl: String,
     onDismiss: () -> Unit,
-    imageModifier:Modifier = Modifier
+    modifier: Modifier = Modifier
 ) {
     var offsetY by remember { mutableStateOf(0f) }
     val animatedOffsetY by animateFloatAsState(targetValue = offsetY)
@@ -92,7 +90,7 @@ fun FullScreenImage(
                     model = imageUrl,
                     contentScale = ContentScale.Fit,
                     contentDescription = null,
-                    modifier = imageModifier
+                    modifier = modifier
                 )
             }
         }

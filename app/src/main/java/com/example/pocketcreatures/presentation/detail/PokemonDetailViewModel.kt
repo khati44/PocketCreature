@@ -12,7 +12,7 @@ import javax.inject.Inject
 
 @HiltViewModel
 class PokemonDetailViewModel @Inject constructor(
-    private val dispatchers:Dispatchers,
+    private val dispatchers: Dispatchers,
     private val detailPokemonUseCase: GetPokemonDetailUseCase
 ) : ViewModel() {
 
@@ -25,7 +25,10 @@ class PokemonDetailViewModel @Inject constructor(
             detailPokemonUseCase.invoke(id).collect { result ->
                 result.fold(
                     onSuccess = { data -> _uiState.value = PokemonDetailUiState.Success(data) },
-                    onFailure = { exception -> _uiState.value = PokemonDetailUiState.Error(exception.message ?: "Unknown error") }
+                    onFailure = { exception ->
+                        _uiState.value =
+                            PokemonDetailUiState.Error(exception.message ?: "Unknown error")
+                    }
                 )
             }
         }

@@ -6,7 +6,6 @@ import com.example.pocketcreatures.data.remote.model.asDomain
 import com.example.pocketcreatures.domain.model.PokemonDetailResponse
 import com.example.pocketcreatures.domain.model.PokemonResponse
 import com.example.pocketcreatures.domain.repository.PokemonRepository
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 import javax.inject.Inject
@@ -16,7 +15,6 @@ class PokemonRepositoryImpl @Inject constructor(
 ) : PokemonRepository,ApiCall() {
 
     override suspend fun getPokemon(offset: Int, limit: Int): Flow<Result<PokemonResponse>> {
-        delay(2000)
         return handleApi {
             apiService.getPokemon(limit, offset)
         }.map{ res ->
